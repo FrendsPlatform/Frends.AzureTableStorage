@@ -1,11 +1,10 @@
-[//]: # (Update this file with actual SystemName and ActionName)
-# Frends.{SystemName}
+# Frends.AzureTableStorage
 
-Frends tasks for {SystemName} related operations.
+Frends tasks for Azure Table Storage related operations.
 
 # Tasks
 
-- [Frends.{SystemName}.{ActionName}](Frends.{SystemName}.{ActionName}/README.md)
+- [Frends.AzureTableStorage.CreateTable](Frends.AzureTableStorage.CreateTable/README.md)
 
 # Contributing
 
