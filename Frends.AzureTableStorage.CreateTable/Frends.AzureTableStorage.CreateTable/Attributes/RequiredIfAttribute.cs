@@ -22,7 +22,9 @@ internal class RequiredIfAttribute(string dependentProperty, params object[] tar
 
         if (!targetValues.Contains(dependentValue)) return ValidationResult.Success;
 
-        if (value == null || (value is string s && string.IsNullOrWhiteSpace(s)))
+        if (value == null
+            || (value is string s && string.IsNullOrWhiteSpace(s))
+            || (value is Array { Length: 0 }))
         {
             return new ValidationResult(ErrorMessage ?? $"{validationContext.DisplayName} is required.");
         }
