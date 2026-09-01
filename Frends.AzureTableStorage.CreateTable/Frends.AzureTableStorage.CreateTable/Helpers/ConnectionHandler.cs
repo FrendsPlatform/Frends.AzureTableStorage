@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.RegularExpressions;
+using System.Linq;
 using System.Threading;
 using Azure.Core;
 using Azure.Data.Tables;
@@ -15,8 +15,6 @@ namespace Frends.AzureTableStorage.CreateTable.Helpers;
 /// </summary>
 public static class ConnectionHandler
 {
-    private static readonly Regex StorageAccountNameRegex = new(@"^[a-z0-9]{3,24}$", RegexOptions.Compiled);
-
     /// <summary>
     /// Get Table Service Client.
     /// </summary>
@@ -103,7 +101,10 @@ public static class ConnectionHandler
 
     private static Uri GetUri(string storageAccountName, string sasToken = null)
     {
-        if (!StorageAccountNameRegex.IsMatch(storageAccountName ?? string.Empty))
+        if (storageAccountName is null
+            || storageAccountName.Length < 3
+            || storageAccountName.Length > 24
+            || !storageAccountName.All(c => char.IsLower(c) || char.IsDigit(c)))
             throw new ValidationException("StorageAccountName must be 3–24 lowercase letters or digits.");
 
         var normalizedSasToken = sasToken?.TrimStart('?');
