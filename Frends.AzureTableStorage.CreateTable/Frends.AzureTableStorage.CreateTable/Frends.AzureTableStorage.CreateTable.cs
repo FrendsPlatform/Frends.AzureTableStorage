@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Frends.AzureTableStorage.CreateTable.Definitions;
+using Frends.AzureTableStorage.CreateTable.Helpers;
+using System;
 using System.ComponentModel;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Frends.AzureTableStorage.CreateTable.Definitions;
-using Frends.AzureTableStorage.CreateTable.Helpers;
 
 namespace Frends.AzureTableStorage.CreateTable;
 
@@ -33,16 +34,30 @@ public static class AzureTableStorage
 
             var serviceClient = ConnectionHandler.GetTableServiceClient(connection, cancellationToken);
 
-            bool tableCreated = false;
-
             var response = await serviceClient.CreateTableIfNotExistsAsync(input.TableName, cancellationToken);
+            var rawResponse = response?.GetRawResponse();
+            var status = rawResponse?.Status ?? 0;
 
-            bool tableAlreadyExisted = response?.GetRawResponse()?.Status == 409;
-            tableCreated = !tableAlreadyExisted;
-
-            if (tableAlreadyExisted && options.FailIfTableExists)
+            bool tableCreated;
+            if (status == 201 || status == 204)
             {
-                throw new Exception($"Table '{input.TableName}' already exists.");
+                tableCreated = true;
+            }
+            else if (status == 409)
+            {
+                var errorCode = GetODataErrorCode(rawResponse);
+
+                if (errorCode != "TableAlreadyExists")
+                    throw new Exception($"Failed to create table '{input.TableName}'. Status: {status} ({rawResponse?.ReasonPhrase}). Error code: '{errorCode}'.");
+
+                if (options.FailIfTableExists)
+                    throw new Exception($"Table '{input.TableName}' already exists.");
+
+                tableCreated = false;
+            }
+            else
+            {
+                throw new Exception($"Failed to create table '{input.TableName}'. Status: {status} ({rawResponse?.ReasonPhrase}).");
             }
 
             var tableClient = serviceClient.GetTableClient(input.TableName);
@@ -61,5 +76,31 @@ public static class AzureTableStorage
         {
             return ex.Handle(options);
         }
+    }
+
+    /// <summary>
+    /// Extracts the "odata.error.code" value from a raw error response, if present.
+    /// </summary>
+    private static string GetODataErrorCode(Azure.Response rawResponse)
+    {
+        try
+        {
+            var content = rawResponse?.Content;
+            if (content == null)
+                return null;
+
+            using var doc = JsonDocument.Parse(content);
+            if (doc.RootElement.TryGetProperty("odata.error", out var odataError) &&
+                odataError.TryGetProperty("code", out var code))
+            {
+                return code.GetString();
+            }
+        }
+        catch
+        {
+            // Ignore parsing failures - fall back to null (treated as unknown/unexpected error).
+        }
+
+        return null;
     }
 }
