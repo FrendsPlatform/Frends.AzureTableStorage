@@ -1,0 +1,34 @@
+name: DeleteTable_test_on_push
+permissions:
+  contents: read
+
+on:
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - 'Frends.AzureTableStorage.DeleteTable/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: FrendsPlatform/FrendsTasks/.github/workflows/linux_build_test.yml@main
+    with:
+      workdir: Frends.AzureTableStorage.DeleteTable
+      dotnet_version: 8.0.x
+      strict_analyzers: true
+      env_var_name_1: Frends_AzureTableStorage_ConnString
+      env_var_name_2: Frends_AzureTableStorage_AccountName
+      env_var_name_3: Frends_AzureTableStorage_TenantID
+      env_var_name_4: Frends_AzureTableStorage_ClientID
+      env_var_name_5: Frends_AzureTableStorage_ClientSecret
+      env_var_name_6: Frends_AzureTableStorage_SasToken
+    secrets:
+      badge_service_api_key: ${{ secrets.BADGE_SERVICE_API_KEY }}
+      test_feed_api_key: ${{ secrets.TASKS_TEST_FEED_API_KEY }}
+      env_var_value_1: ${{ secrets.FRENDS_AZURETABLESTORAGE_CONNSTRING }}
+      env_var_value_2: ${{ secrets.FRENDS_AZURETABLESTORAGE_ACCOUNTNAME }}
+      env_var_value_3: ${{ secrets.FRENDS_AZURETABLESTORAGE_TENANTID }}
+      env_var_value_4: ${{ secrets.FRENDS_AZURETABLESTORAGE_CLIENTID }}
+      env_var_value_5: ${{ secrets.FRENDS_AZURETABLESTORAGE_CLIENTSECRET }}
+      env_var_value_6: ${{ secrets.FRENDS_AZURETABLESTORAGE_SASTOKEN }}
