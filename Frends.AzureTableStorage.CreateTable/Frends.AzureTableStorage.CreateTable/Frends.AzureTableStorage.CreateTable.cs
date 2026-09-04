@@ -1,10 +1,10 @@
-﻿using Frends.AzureTableStorage.CreateTable.Definitions;
-using Frends.AzureTableStorage.CreateTable.Helpers;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Frends.AzureTableStorage.CreateTable.Definitions;
+using Frends.AzureTableStorage.CreateTable.Helpers;
 
 namespace Frends.AzureTableStorage.CreateTable;
 
