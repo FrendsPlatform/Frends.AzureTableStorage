@@ -53,6 +53,9 @@ internal class FunctionalTests : TestBase
         Assert.That(result.Deleted, Is.True);
         Assert.That(result.TableUri, Is.Not.Empty);
         Assert.That(result.Error, Is.Null);
+
+        var serviceClient = new TableServiceClient(ConnectionString);
+        Assert.That(await TableExistsAsync(serviceClient, tableName), Is.False);
     }
 
     [Test]
@@ -95,6 +98,9 @@ internal class FunctionalTests : TestBase
         Assert.That(result.Deleted, Is.True);
         Assert.That(result.TableUri, Is.Not.Empty);
         Assert.That(result.Error, Is.Null);
+
+        var serviceClient = new TableServiceClient(ConnectionString);
+        Assert.That(await TableExistsAsync(serviceClient, tableName), Is.False);
     }
 
     [Test]
@@ -107,5 +113,18 @@ internal class FunctionalTests : TestBase
         Assert.That(result.Deleted, Is.True);
         Assert.That(result.TableUri, Is.Not.Empty);
         Assert.That(result.Error, Is.Null);
+
+        var serviceClient = new TableServiceClient(ConnectionString);
+        Assert.That(await TableExistsAsync(serviceClient, tableName), Is.False);
+    }
+
+    private static async Task<bool> TableExistsAsync(TableServiceClient serviceClient, string tableName)
+    {
+        await foreach (var table in serviceClient.QueryAsync(filter: $"TableName eq '{tableName}'"))
+        {
+            return true;
+        }
+
+        return false;
     }
 }
