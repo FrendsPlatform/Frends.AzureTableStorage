@@ -39,7 +39,7 @@ public static class AzureTableStorage
             var status = rawResponse?.Status ?? 0;
 
             bool tableCreated;
-            if (status == 201 || status == 204)
+            if (status == 204)
             {
                 tableCreated = true;
             }
