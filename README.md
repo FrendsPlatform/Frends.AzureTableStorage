@@ -5,6 +5,7 @@ Frends tasks for Azure Table Storage related operations.
 # Tasks
 
 - [Frends.AzureTableStorage.CreateTable](Frends.AzureTableStorage.CreateTable/README.md)
+- [Frends.AzureTableStorage.DeleteTable](Frends.AzureTableStorage.DeleteTable/README.md)
 
 # Contributing
 

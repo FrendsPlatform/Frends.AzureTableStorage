@@ -45,11 +45,6 @@ public static class AzureTableStorage
             }
             else if (status == 409)
             {
-                var errorCode = GetODataErrorCode(rawResponse);
-
-                if (errorCode != "TableAlreadyExists")
-                    throw new Exception($"Failed to create table '{input.TableName}'. Status: {status} ({rawResponse?.ReasonPhrase}). Error code: '{errorCode}'.");
-
                 if (options.FailIfTableExists)
                     throw new Exception($"Table '{input.TableName}' already exists.");
 
@@ -76,31 +71,5 @@ public static class AzureTableStorage
         {
             return ex.Handle(options);
         }
-    }
-
-    /// <summary>
-    /// Extracts the "odata.error.code" value from a raw error response, if present.
-    /// </summary>
-    private static string GetODataErrorCode(Azure.Response rawResponse)
-    {
-        try
-        {
-            var content = rawResponse?.Content;
-            if (content == null)
-                return null;
-
-            using var doc = JsonDocument.Parse(content);
-            if (doc.RootElement.TryGetProperty("odata.error", out var odataError) &&
-                odataError.TryGetProperty("code", out var code))
-            {
-                return code.GetString();
-            }
-        }
-        catch
-        {
-            // Ignore parsing failures - fall back to null (treated as unknown/unexpected error).
-        }
-
-        return null;
     }
 }
