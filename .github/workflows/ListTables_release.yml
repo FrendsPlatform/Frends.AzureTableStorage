@@ -1,0 +1,16 @@
+name: ListTables_release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  main_release:
+    uses: FrendsPlatform/FrendsTasks/.github/workflows/official_task_pipeline.yml@main
+    with:
+      workflow_mode: release
+      os: all
+      workdir: Frends.AzureTableStorage.ListTables
+    secrets:
+      badge_service_api_key: ${{ secrets.BADGE_SERVICE_API_KEY }}
+      target_feed_api_key: ${{ secrets.TASKS_FEED_API_KEY }}
+      source_nuget_feed_url: ${{ secrets.TASKS_FEED_URL }}
