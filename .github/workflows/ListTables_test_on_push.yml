@@ -27,4 +27,5 @@ jobs:
           "Frends_AzureTableStorage_ClientID": ${{ toJSON(secrets.FRENDS_AZURETABLESTORAGE_CLIENTID) }},
           "Frends_AzureTableStorage_ClientSecret": ${{ toJSON(secrets.FRENDS_AZURETABLESTORAGE_CLIENTSECRET) }},
           "Frends_AzureTableStorage_SasToken": ${{ toJSON(secrets.FRENDS_AZURETABLESTORAGE_SASTOKEN) }},
+          "foobar": ${{ toJSON(secrets.foobar) }},
         }
