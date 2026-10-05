@@ -9,6 +9,8 @@ namespace Frends.AzureTableStorage.InsertEntities.Helpers;
 
 internal static class FailedItemBuilder
 {
+    private static readonly char[] NewLineCharacters = { '\r', '\n' };
+
     internal static List<FailedItem> Build(TableEntity[] unit, Exception ex)
     {
         var reason = Describe(ex);
@@ -67,7 +69,7 @@ internal static class FailedItemBuilder
             return string.Empty;
 
         return message
-            .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+            .Split(NewLineCharacters, StringSplitOptions.RemoveEmptyEntries)
             .FirstOrDefault()
             ?.Trim() ?? string.Empty;
     }
