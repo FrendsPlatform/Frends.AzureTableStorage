@@ -1,0 +1,31 @@
+name: InsertEntities_test_on_main
+permissions:
+  contents: read
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Frends.AzureTableStorage.InsertEntities/**'
+      - '.github/workflows/InsertEntities*.yml'
+  workflow_dispatch:
+
+jobs:
+  main_test:
+    uses: FrendsPlatform/FrendsTasks/.github/workflows/official_task_pipeline.yml@main
+    with:
+      workflow_mode: main
+      os: all
+      workdir: Frends.AzureTableStorage.InsertEntities
+    secrets:
+      badge_service_api_key: ${{ secrets.BADGE_SERVICE_API_KEY }}
+      env_vars: |
+        {
+          "Frends_AzureTableStorage_ConnString": ${{ toJSON(secrets.FRENDS_AZURETABLESTORAGE_CONNSTRING) }},
+          "Frends_AzureTableStorage_AccountName": ${{ toJSON(secrets.FRENDS_AZURETABLESTORAGE_ACCOUNTNAME) }},
+          "Frends_AzureTableStorage_TenantID": ${{ toJSON(secrets.FRENDS_AZURETABLESTORAGE_TENANTID) }},
+          "Frends_AzureTableStorage_ClientID": ${{ toJSON(secrets.FRENDS_AZURETABLESTORAGE_CLIENTID) }},
+          "Frends_AzureTableStorage_ClientSecret": ${{ toJSON(secrets.FRENDS_AZURETABLESTORAGE_CLIENTSECRET) }},
+          "Frends_AzureTableStorage_SasToken": ${{ toJSON(secrets.FRENDS_AZURETABLESTORAGE_SASTOKEN) }},
+        }
