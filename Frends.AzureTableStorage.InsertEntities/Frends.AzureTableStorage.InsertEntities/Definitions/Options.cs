@@ -37,7 +37,7 @@ public class Options
     public int BatchSize { get; set; } = 100;
 
     /// <summary>
-    /// If false, processing stops at the first failed transaction (or entity). Items written before it remain
+    /// If false, processing stops at the first failed transaction (or entity).
     /// Entities written before the failure remain in the table and Success is false.
     /// If true, failures are recorded in Error.FailedItems, processing continues and Success is true,
     /// so always check Error when this option is enabled.

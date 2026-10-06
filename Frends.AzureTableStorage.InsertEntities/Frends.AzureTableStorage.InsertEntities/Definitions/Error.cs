@@ -24,6 +24,6 @@ public class Error
     /// Entities that were not written, with the reason. Available when ThrowErrorOnFailure=false
     /// or ContinueOnFailure=true.
     /// </summary>
-    /// ><example>[ { "PartitionKey": "pk1", "RowKey": "3", "IsCause": true, "Reason": "Status 409 EntityAlreadyExists: The specified entity already exists." } ]</example>
+    /// <example>[ { "PartitionKey": "pk1", "RowKey": "3", "IsCause": true, "Reason": "Status 409 EntityAlreadyExists: The specified entity already exists." } ]</example>
     public List<FailedItem> FailedItems { get; set; }
 }

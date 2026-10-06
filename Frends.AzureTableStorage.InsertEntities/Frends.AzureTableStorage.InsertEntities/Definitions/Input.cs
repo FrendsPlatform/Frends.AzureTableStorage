@@ -8,8 +8,8 @@ namespace Frends.AzureTableStorage.InsertEntities.Definitions;
 /// </summary>
 public class Input
 {
-    /// <summary
-    /// >Name of the table. The table must already exist.
+    /// <summary>
+    /// Name of the table. The table must already exist.
     /// </summary>
     /// <example>orders</example>
     [Required]
