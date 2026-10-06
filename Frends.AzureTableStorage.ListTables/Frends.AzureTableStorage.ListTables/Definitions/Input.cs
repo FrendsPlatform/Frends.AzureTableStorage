@@ -20,6 +20,7 @@ public class Input
     /// Maximum number of tables to return. 0 means no limit.
     /// </summary>
     /// <example>100</example>
+    [Range(0, int.MaxValue, ErrorMessage = "MaxResults must be greater than or equal to 0.")]
     [DefaultValue(0)]
     public int MaxResults { get; set; }
 }

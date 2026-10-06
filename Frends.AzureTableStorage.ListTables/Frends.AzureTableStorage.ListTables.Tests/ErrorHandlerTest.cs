@@ -93,15 +93,11 @@ internal class ErrorHandlerTest : TestBase
         Assume.That(ConnectionString, Is.Not.Empty, "Connection string is required for cancellation test.");
 
         var cts = new CancellationTokenSource();
-        cts.Cancel();
+        await cts.CancelAsync();
 
-        Func<Task> action = async () =>
-        {
-            await AzureTableStorage.ListTables(DefaultInput(), DefaultConnectionStringConnection(), DefaultOptions(), cts.Token);
-        };
-
-        var ex = Assert.ThrowsAsync<TaskCanceledException>(action);
-        Assert.That(ex, Is.Not.Null);
+        await Assert.ThatAsync(
+            () => AzureTableStorage.ListTables(DefaultInput(), DefaultConnectionStringConnection(), DefaultOptions(), cts.Token),
+            Throws.InstanceOf<OperationCanceledException>());
     }
 
     [Test]
