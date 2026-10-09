@@ -1,4 +1,6 @@
 name: ListTables_test_on_main
+permissions:
+  contents: write
 
 on:
   push:
