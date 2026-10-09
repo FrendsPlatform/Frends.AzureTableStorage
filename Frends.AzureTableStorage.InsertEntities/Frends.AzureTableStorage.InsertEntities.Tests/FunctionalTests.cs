@@ -39,13 +39,10 @@ internal class FunctionalTests : TestBase
         }
     }
 
-    [TestCase(InsertMode.Add, true)]
-    [TestCase(InsertMode.Add, false)]
-    [TestCase(InsertMode.UpsertMerge, true)]
-    [TestCase(InsertMode.UpsertReplace, false)]
-    public async Task InsertEntities_WithDifferentModesAndTransactionSettings_ShouldSucceed(
-        InsertMode insertMode,
-        bool useTransactions)
+    [TestCase(InsertMode.Add)]
+    [TestCase(InsertMode.UpsertMerge)]
+    [TestCase(InsertMode.UpsertReplace)]
+    public async Task InsertEntities_WithDifferentModes_ShouldSucceed(InsertMode insertMode)
     {
         var input = BuildInput(
             new { PartitionKey = "pk1", RowKey = "1", Name = "Anna" },
@@ -53,14 +50,9 @@ internal class FunctionalTests : TestBase
 
         var options = DefaultOptions();
         options.InsertMode = insertMode;
-        options.UseTransactions = useTransactions;
-        options.BatchSize = 100;
 
         var result = await AzureTableStorage.InsertEntities(
-            input,
-            DefaultConnectionStringConnection(),
-            options,
-            CancellationToken.None);
+            input, DefaultConnectionStringConnection(), options, CancellationToken.None);
 
         Assert.That(result.Success, Is.True);
         Assert.That(result.Error, Is.Null);
@@ -78,7 +70,6 @@ internal class FunctionalTests : TestBase
         var input = BuildInput(new { PartitionKey = "pk1", RowKey = "1", Name = "New" });
         var options = DefaultOptions();
         options.InsertMode = insertMode;
-        options.UseTransactions = false;
 
         var result = await AzureTableStorage.InsertEntities(
             input,
@@ -97,41 +88,7 @@ internal class FunctionalTests : TestBase
     }
 
     [Test]
-    public async Task InsertEntities_OnFailureAfterPartialWrite_ShouldReturnProgressAndFailureData()
-    {
-        await SeedEntityAsync(new { PartitionKey = "pk1", RowKey = "2", Name = "Exists" });
-
-        var input = BuildInput(
-            new { PartitionKey = "pk1", RowKey = "1", Name = "First" },
-            new { PartitionKey = "pk1", RowKey = "2", Name = "Duplicate" },
-            new { PartitionKey = "pk1", RowKey = "3", Name = "NotAttempted" });
-
-        var options = DefaultOptions();
-        options.UseTransactions = false;
-        options.ContinueOnFailure = false;
-        options.ThrowErrorOnFailure = false;
-
-        var result = await AzureTableStorage.InsertEntities(
-            input,
-            DefaultConnectionStringConnection(),
-            options,
-            CancellationToken.None);
-
-        Assert.That(result.Success, Is.False);
-        Assert.That(result.SucceededItems.Select(x => x.RowKey), Is.EquivalentTo(new[] { "1" }));
-        Assert.That(result.Error, Is.Not.Null);
-        Assert.That(result.Error.Message, Is.Not.Empty);
-        Assert.That(result.Error.AdditionalInfo, Is.Not.Null);
-        Assert.That(result.Error.FailedItems, Has.Count.EqualTo(1));
-        Assert.That(result.Error.FailedItems[0].RowKey, Is.EqualTo("2"));
-        Assert.That(result.Error.FailedItems[0].IsCause, Is.True);
-
-        Assert.That(await EntityExistsAsync("pk1", "1"), Is.True);
-        Assert.That(await EntityExistsAsync("pk1", "3"), Is.False);
-    }
-
-    [Test]
-    public async Task InsertEntities_WithContinueOnFailure_ShouldSucceedAndReturnFailedItems()
+    public async Task InsertEntities_DefaultBatchSize_OneFailingEntity_RollsBackWholeBatch()
     {
         await SeedEntityAsync(new { PartitionKey = "pk1", RowKey = "2", Name = "Exists" });
 
@@ -141,71 +98,68 @@ internal class FunctionalTests : TestBase
             new { PartitionKey = "pk1", RowKey = "3", Name = "Third" });
 
         var options = DefaultOptions();
-        options.UseTransactions = false;
-        options.ContinueOnFailure = true;
+        options.ContinueOnFailure = false;
         options.ThrowErrorOnFailure = false;
 
         var result = await AzureTableStorage.InsertEntities(
-            input,
-            DefaultConnectionStringConnection(),
-            options,
-            CancellationToken.None);
+            input, DefaultConnectionStringConnection(), options, CancellationToken.None);
 
-        Assert.That(result.Success, Is.True);
-        Assert.That(result.SucceededItems.Select(x => x.RowKey), Is.EquivalentTo(new[] { "1", "3" }));
-        Assert.That(result.Error, Is.Not.Null);
-        Assert.That(result.Error.Message, Does.Contain("1 of 3 entities failed"));
-        Assert.That(result.Error.AdditionalInfo, Is.Null);
-        Assert.That(result.Error.FailedItems, Has.Count.EqualTo(1));
-        Assert.That(result.Error.FailedItems[0].RowKey, Is.EqualTo("2"));
+        Assert.That(result.Success, Is.False);
+        Assert.That(result.SucceededItems, Is.Empty);
+        Assert.That(result.Error.FailedItems, Has.Count.EqualTo(3));
+        Assert.That(
+            result.Error.FailedItems.Where(f => f.IsCause).Select(f => f.RowKey),
+            Is.EquivalentTo(new[] { "2" }));
+        Assert.That(
+            result.Error.FailedItems.Where(f => !f.IsCause).Select(f => f.Reason),
+            Has.All.StartWith("Not written"));
+
+        Assert.That(await EntityExistsAsync("pk1", "1"), Is.False);
+        Assert.That(await EntityExistsAsync("pk1", "3"), Is.False);
     }
 
     [Test]
-    public async Task InsertEntities_WithTransactionsAndContinueOnFailure_ShouldMarkCauseAndBatchAtomicFailure()
+    public async Task InsertEntities_WithContinueOnFailure_FailedBatchDoesNotBlockOtherPartitions()
     {
         await SeedEntityAsync(new { PartitionKey = "pk1", RowKey = "2", Name = "Exists" });
 
         var input = BuildInput(
-            new { PartitionKey = "pk1", RowKey = "1", Name = "RolledBack" },
+            new { PartitionKey = "pk1", RowKey = "1", Name = "First" },
             new { PartitionKey = "pk1", RowKey = "2", Name = "Duplicate" },
-            new { PartitionKey = "pk2", RowKey = "3", Name = "Succeeded" });
+            new { PartitionKey = "pk2", RowKey = "1", Name = "OtherPartition" });
 
         var options = DefaultOptions();
-        options.UseTransactions = true;
-        options.BatchSize = 2;
         options.ContinueOnFailure = true;
         options.ThrowErrorOnFailure = false;
 
         var result = await AzureTableStorage.InsertEntities(
-            input,
-            DefaultConnectionStringConnection(),
-            options,
-            CancellationToken.None);
+            input, DefaultConnectionStringConnection(), options, CancellationToken.None);
 
         Assert.That(result.Success, Is.True);
-        Assert.That(result.SucceededItems.Select(x => x.RowKey), Is.EquivalentTo(new[] { "3" }));
-        Assert.That(result.Error, Is.Not.Null);
+        Assert.That(
+            result.SucceededItems.Select(x => $"{x.PartitionKey}/{x.RowKey}"),
+            Is.EquivalentTo(new[] { "pk2/1" }));
         Assert.That(result.Error.Message, Does.Contain("2 of 3 entities failed"));
-        Assert.That(result.Error.FailedItems, Has.Count.EqualTo(2));
-        Assert.That(result.Error.FailedItems.Count(i => i.IsCause), Is.EqualTo(1));
-        Assert.That(result.Error.FailedItems.Single(i => !i.IsCause).Reason, Does.Contain("not applied"));
+        Assert.That(result.Error.FailedItems.Select(f => f.RowKey), Is.EquivalentTo(new[] { "1", "2" }));
+        Assert.That(result.Error.FailedItems.Single(f => f.IsCause).RowKey, Is.EqualTo("2"));
 
         Assert.That(await EntityExistsAsync("pk1", "1"), Is.False);
-        Assert.That(await EntityExistsAsync("pk2", "3"), Is.True);
+        Assert.That(await EntityExistsAsync("pk2", "1"), Is.True);
     }
 
     [Test]
-    public void InsertEntities_WithThrowErrorOnFailureTrue_ShouldThrowFailureSummaryWhenPartiallyWritten()
+    public async Task InsertEntities_WithThrowErrorOnFailureTrue_ShouldThrowFailureSummaryWhenPartiallyWritten()
     {
-        SeedEntityAsync(new { PartitionKey = "pk1", RowKey = "2", Name = "Exists" }).GetAwaiter().GetResult();
+        await SeedEntityAsync(new { PartitionKey = "pk2", RowKey = "1", Name = "Exists" });
 
         var input = BuildInput(
             new { PartitionKey = "pk1", RowKey = "1", Name = "First" },
-            new { PartitionKey = "pk1", RowKey = "2", Name = "Duplicate" },
-            new { PartitionKey = "pk1", RowKey = "3", Name = "NotAttempted" });
+            new { PartitionKey = "pk1", RowKey = "2", Name = "Second" },
+            new { PartitionKey = "pk2", RowKey = "1", Name = "Duplicate" },
+            new { PartitionKey = "pk2", RowKey = "2", Name = "RolledBack" },
+            new { PartitionKey = "pk3", RowKey = "1", Name = "NotAttempted" });
 
         var options = DefaultOptions();
-        options.UseTransactions = false;
         options.ContinueOnFailure = false;
         options.ThrowErrorOnFailure = true;
 
@@ -219,9 +173,14 @@ internal class FunctionalTests : TestBase
         var ex = Assert.ThrowsAsync<Exception>(action);
 
         Assert.That(ex, Is.Not.Null);
-        Assert.That(ex.Message, Does.Contain("Written before the failure: 1 ['pk1/1']."));
-        Assert.That(ex.Message, Does.Contain("Not written: 1. Not attempted: 1."));
-        Assert.That(ex.Message, Does.Contain("Cause: PartitionKey 'pk1', RowKey '2'"));
+        Assert.That(ex.Message, Does.Contain("Written before the failure: 2"));
+        Assert.That(ex.Message, Does.Contain("Not written: 2. Not attempted: 1."));
+        Assert.That(ex.Message, Does.Contain("Cause: PartitionKey 'pk2', RowKey '1'"));
+
+        Assert.That(await EntityExistsAsync("pk1", "1"), Is.True);
+        Assert.That(await EntityExistsAsync("pk1", "2"), Is.True);
+        Assert.That(await EntityExistsAsync("pk2", "2"), Is.False);
+        Assert.That(await EntityExistsAsync("pk3", "1"), Is.False);
     }
 
     [Test]
@@ -246,6 +205,35 @@ internal class FunctionalTests : TestBase
         Assert.That(result.Error.FailedItems, Is.Empty);
     }
 
+    [Test]
+    public async Task InsertEntities_BatchSizeSmallerThanPartition_FailedChunkDoesNotBlockNextChunk()
+    {
+        await SeedEntityAsync(new { PartitionKey = "pk1", RowKey = "2", Name = "Exists" });
+
+        var input = BuildInput(
+            new { PartitionKey = "pk1", RowKey = "1", Name = "RolledBack" },
+            new { PartitionKey = "pk1", RowKey = "2", Name = "Duplicate" },
+            new { PartitionKey = "pk1", RowKey = "3", Name = "Succeeded" });
+
+        var options = DefaultOptions();
+        options.BatchSize = 2;
+        options.ContinueOnFailure = true;
+        options.ThrowErrorOnFailure = false;
+
+        var result = await AzureTableStorage.InsertEntities(
+            input, DefaultConnectionStringConnection(), options, CancellationToken.None);
+
+        Assert.That(result.Success, Is.True);
+        Assert.That(result.SucceededItems.Select(x => x.RowKey), Is.EquivalentTo(new[] { "3" }));
+        Assert.That(result.Error.Message, Does.Contain("2 of 3 entities failed"));
+        Assert.That(result.Error.FailedItems, Has.Count.EqualTo(2));
+        Assert.That(result.Error.FailedItems.Single(i => i.IsCause).RowKey, Is.EqualTo("2"));
+        Assert.That(result.Error.FailedItems.Single(i => !i.IsCause).Reason, Does.StartWith("Not written"));
+
+        Assert.That(await EntityExistsAsync("pk1", "1"), Is.False);
+        Assert.That(await EntityExistsAsync("pk1", "3"), Is.True);
+    }
+
     private Input BuildInput(params object[] entities) => new()
     {
         TableName = tableName,
@@ -263,7 +251,6 @@ internal class FunctionalTests : TestBase
         var seedInput = BuildInput(entity);
         var seedOptions = DefaultOptions();
         seedOptions.InsertMode = InsertMode.UpsertReplace;
-        seedOptions.UseTransactions = false;
         seedOptions.ThrowErrorOnFailure = true;
 
         await AzureTableStorage.InsertEntities(

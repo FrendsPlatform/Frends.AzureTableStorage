@@ -44,9 +44,9 @@ public static class AzureTableStorage
             var entities = EntityParser.Parse(input.Entities);
             total = entities.Count;
 
-            IEnumerable<TableEntity[]> units = options.UseTransactions
-                ? entities.GroupBy(e => e.PartitionKey).SelectMany(g => g.Chunk(options.BatchSize))
-                : entities.Select(e => new[] { e });
+            IEnumerable<TableEntity[]> units = entities
+                .GroupBy(e => e.PartitionKey)
+                .SelectMany(g => g.Chunk(options.BatchSize));
 
             foreach (var unit in units)
             {
@@ -83,24 +83,13 @@ public static class AzureTableStorage
         }
         catch (Exception ex)
         {
-            if (options.ThrowErrorOnFailure
-                && ex is not OperationCanceledException
-                && (succeeded.Count > 0 || failed.Count > 0))
-            {
-                ex = new Exception(FailureSummary.Build(ex, total, succeeded, failed), ex);
-            }
-
-            var result = ex.Handle(options);
-            result.SucceededItems = succeeded;
-            result.Error.FailedItems = failed;
-            return result;
+            return ex.Handle(options, succeeded: succeeded, failed: failed, total: total);
         }
     }
 
     private static async Task WriteUnitAsync(
         TableClient client, TableEntity[] unit, Options options, CancellationToken cancellationToken)
     {
-        if (options.UseTransactions)
         {
             var actionType = options.InsertMode switch
             {
@@ -112,21 +101,6 @@ public static class AzureTableStorage
             await client.SubmitTransactionAsync(
                 unit.Select(e => new TableTransactionAction(actionType, e)).ToList(),
                 cancellationToken);
-            return;
-        }
-
-        var entity = unit[0];
-        switch (options.InsertMode)
-        {
-            case InsertMode.UpsertMerge:
-                await client.UpsertEntityAsync(entity, TableUpdateMode.Merge, cancellationToken);
-                break;
-            case InsertMode.UpsertReplace:
-                await client.UpsertEntityAsync(entity, TableUpdateMode.Replace, cancellationToken);
-                break;
-            default:
-                await client.AddEntityAsync(entity, cancellationToken);
-                break;
         }
     }
 

@@ -45,7 +45,6 @@ internal abstract class TestBase
     protected static Options DefaultOptions() => new()
     {
         InsertMode = InsertMode.Add,
-        UseTransactions = true,
         BatchSize = 100,
         ContinueOnFailure = false,
         ThrowErrorOnFailure = true,

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
 using Frends.AzureTableStorage.InsertEntities.Definitions;
 
@@ -15,13 +16,30 @@ internal static class ErrorHandler
     /// When true, an OperationCanceledException is rethrown immediately.
     /// When false, cancellation is handled like any other failure.
     /// </param>
+    /// <param name="succeeded">The list of successfully processed entity keys.</param>
+    /// <param name="failed">The list of failed items.</param>
+    /// <param name="total">The total number of items processed.</param>
     /// <returns> A failed Result object when the exception is handled instead of rethrown. </returns>
-    internal static Result Handle(this Exception exception, Options options, bool throwCanceled = true)
+    internal static Result Handle(
+    this Exception exception,
+    Options options,
+    bool throwCanceled = true,
+    List<EntityKey> succeeded = null,
+    List<FailedItem> failed = null,
+    int total = 0)
     {
         ThrowIfCanceled(exception, throwCanceled);
-        if (options.ThrowErrorOnFailure) ThrowBaseException(exception, options.ErrorMessageOnFailure);
 
-        return ReturnResult(exception, options.ErrorMessageOnFailure);
+        if (options.ThrowErrorOnFailure)
+        {
+            exception = WithProgressSummary(exception, succeeded, failed, total);
+            ThrowBaseException(exception, options.ErrorMessageOnFailure);
+        }
+
+        var result = ReturnResult(exception, options.ErrorMessageOnFailure);
+        result.SucceededItems = succeeded;
+        result.Error.FailedItems = failed;
+        return result;
     }
 
     private static void ThrowIfCanceled(Exception exception, bool throwCanceled = true)
@@ -52,5 +70,15 @@ internal static class ErrorHandler
                 AdditionalInfo = exception,
             },
         };
+    }
+
+    private static Exception WithProgressSummary(
+    Exception exception, List<EntityKey> succeeded, List<FailedItem> failed, int total)
+    {
+        var hasProgress = succeeded?.Count > 0 || failed?.Count > 0;
+
+        return hasProgress && exception is not OperationCanceledException
+            ? new Exception(FailureSummary.Build(exception, total, succeeded, failed), exception)
+            : exception;
     }
 }

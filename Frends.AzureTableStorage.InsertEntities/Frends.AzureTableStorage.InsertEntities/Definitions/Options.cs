@@ -18,21 +18,11 @@ public class Options
     public InsertMode InsertMode { get; set; } = InsertMode.Add;
 
     /// <summary>
-    /// If true, entities are grouped by PartitionKey and sent in transactions of up to BatchSize entities.
-    /// A transaction is atomic: if one entity fails, none of the entities in that transaction are written.
-    /// If false, entities are written one by one (no atomicity, BatchSize is ignored).
-    /// </summary>
-    /// <example>true</example>
-    [DefaultValue(true)]
-    public bool UseTransactions { get; set; } = true;
-
-    /// <summary>
     /// Maximum number of entities per transaction (1-100). Use 1 to get results per entity.
     /// Lower the value if entities are large, because a single transaction is limited to 4 MB.
     /// </summary>
     /// <example>100</example>
     [DefaultValue(100)]
-    [UIHint(nameof(UseTransactions), "", true)]
     [Range(1, 100, ErrorMessage = "BatchSize must be between 1 and 100.")]
     public int BatchSize { get; set; } = 100;
 

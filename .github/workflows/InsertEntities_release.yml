@@ -15,9 +15,3 @@ jobs:
     secrets:
       badge_service_api_key: ${{ secrets.BADGE_SERVICE_API_KEY }}
       target_feed_api_key: ${{ secrets.TASKS_FEED_API_KEY }}
-      source_nuget_feed_url: ${{ secrets.TASKS_FEED_URL }}
-      env_vars: |
-          {
-            "FOO": ${{ toJSON(secrets.FOO) }},
-            "BAR": ${{ toJSON(secrets.BAR) }}
-          }
