@@ -1,0 +1,7 @@
+﻿{
+  "Tasks": [
+    {
+      "TaskMethod": "Frends.AzureTableStorage.InsertEntities.AzureTableStorage.InsertEntities"
+    }
+  ]
+}
