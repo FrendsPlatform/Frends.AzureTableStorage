@@ -26,7 +26,7 @@ jobs:
       env_var_name_6: Frends_AzureTableStorage_SasToken
     secrets:
       badge_service_api_key: ${{ secrets.BADGE_SERVICE_API_KEY }}
-      target_feed_api_key: ${{ secrets.TASKS_TEST_FEED_API_KEY }}
+      target_feed_api_key: ${{ secrets.TASKS_FEED_API_KEY }}
       env_var_value_1: ${{ secrets.FRENDS_AZURETABLESTORAGE_CONNSTRING }}
       env_var_value_2: ${{ secrets.FRENDS_AZURETABLESTORAGE_ACCOUNTNAME }}
       env_var_value_3: ${{ secrets.FRENDS_AZURETABLESTORAGE_TENANTID }}
