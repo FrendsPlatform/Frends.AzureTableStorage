@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  main_test:
+  main_pipeline:
     uses: FrendsPlatform/FrendsTasks/.github/workflows/official_task_pipeline.yml@main
     with:
       workflow_mode: main
