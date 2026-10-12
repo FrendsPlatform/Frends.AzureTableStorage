@@ -27,8 +27,6 @@ jobs:
     secrets:
       badge_service_api_key: ${{ secrets.BADGE_SERVICE_API_KEY }}
       target_feed_api_key: ${{ secrets.TASKS_TEST_FEED_API_KEY }}
-      source_feed_api_key: ${{ secrets.BUILD_TIME_NUGET_FEED_API_KEY }}
-      source_feed_url: ${{ secrets.BUILD_TIME_NUGET_FEED_URL }}
       env_var_value_1: ${{ secrets.FRENDS_AZURETABLESTORAGE_CONNSTRING }}
       env_var_value_2: ${{ secrets.FRENDS_AZURETABLESTORAGE_ACCOUNTNAME }}
       env_var_value_3: ${{ secrets.FRENDS_AZURETABLESTORAGE_TENANTID }}
