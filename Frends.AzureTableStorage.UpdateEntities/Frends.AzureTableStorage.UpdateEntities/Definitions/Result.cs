@@ -1,0 +1,35 @@
+﻿using System.Collections.Generic;
+
+namespace Frends.AzureTableStorage.UpdateEntities.Definitions;
+
+/// <summary>
+/// Result of the task.
+/// </summary>
+public class Result
+{
+    /// <summary>
+    /// Indicates if the task completed successfully.
+    /// With ContinueOnFailure=false: true only if all entities were updated.
+    /// With ContinueOnFailure=true: true whenever the task ran to the end, even if some entities failed.
+    /// Always check Error in that case.
+    /// </summary>
+    /// <example>true</example>
+    public bool Success { get; set; }
+
+    /// <summary>
+    /// Entities confirmed as updated, identified by PartitionKey and RowKey.
+    /// After a failure it contains the entities updated before it (remote rollback is not supported).
+    /// Not returned when an exception is thrown (ThrowErrorOnFailure=true).
+    /// </summary>
+    /// <example>[ { "PartitionKey": "pk1", "RowKey": "1" }, { "PartitionKey": "pk1", "RowKey": "2" } ]</example>
+    public List<EntityKey> SucceededItems { get; set; }
+
+    /// <summary>
+    /// Error that occurred during task execution. Null if all entities were updated.
+    /// Error.FailedItems lists the entities that were not updated, with the reason.
+    /// With ContinueOnFailure=false, entities after the failed transaction were not attempted
+    /// and appear in neither SucceededItems nor FailedItems.
+    /// </summary>
+    /// <example>object { string Message, Exception AdditionalInfo, List&lt;FailedItem&gt; FailedItems }</example>
+    public Error Error { get; set; }
+}
