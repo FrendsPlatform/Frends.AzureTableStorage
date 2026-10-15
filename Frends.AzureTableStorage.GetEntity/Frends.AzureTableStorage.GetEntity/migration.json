@@ -1,0 +1,12 @@
+﻿[
+  {
+    "Task": "Frends.AzureTableStorage.GetEntity",
+    "Migrations": [
+      {
+        "Version": "1.0.0",
+        "Description": "",
+        "Migration": []
+      }
+    ]
+  }
+]
