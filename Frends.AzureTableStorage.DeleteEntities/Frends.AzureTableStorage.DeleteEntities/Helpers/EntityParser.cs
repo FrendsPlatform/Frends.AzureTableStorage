@@ -33,7 +33,7 @@ internal static class EntityParser
                 etag = rawEtag as string;
             }
 
-            var unexpected = item.Keys.Except(new[] { "PartitionKey", "RowKey", "odata.etag" }).ToList();
+            var unexpected = item.Keys.Except(["PartitionKey", "RowKey", "odata.etag"]).ToList();
             if (unexpected.Count > 0)
             {
                 throw new ArgumentException(
