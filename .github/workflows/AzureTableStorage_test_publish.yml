@@ -1,0 +1,29 @@
+name: AzureTableStorage test publish
+permissions:
+  contents: read
+
+on:
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - 'Frends.AzureTableStorage.Frends.AzureTableStorage.AzureTableStorage/**'
+      - '.github/workflows/AzureTableStorage*.yml'
+  workflow_dispatch:
+
+jobs:
+  work_push:
+    uses: FrendsPlatform/FrendsTasks/.github/workflows/official_task_pipeline.yml@main
+    with:
+      workflow_mode: work
+      os: all
+      workdir: Frends.AzureTableStorage.Frends.AzureTableStorage.AzureTableStorage
+      env_var_name_1: FOO
+      env_var_name_2: BAR
+    secrets:
+      badge_service_api_key: ${{ secrets.BADGE_SERVICE_API_KEY }}
+      target_feed_api_key: ${{ secrets.TASKS_TEST_FEED_API_KEY }}
+      source_feed_api_key: ${{ secrets.BUILD_TIME_NUGET_FEED_API_KEY }}
+      source_feed_url: ${{ secrets.BUILD_TIME_NUGET_FEED_URL }}
+      env_var_value_1: ${{ secrets.FOO }}
+      env_var_value_2: ${{ secrets.BAR }}
