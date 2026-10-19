@@ -1,0 +1,70 @@
+using System;
+using dotenv.net;
+using Frends.AzureTableStorage.DeleteEntities.Definitions;
+using Newtonsoft.Json;
+
+namespace Frends.AzureTableStorage.DeleteEntities.Tests;
+
+internal abstract class TestBase
+{
+    internal TestBase()
+    {
+        DotEnv.Load();
+        ConnectionString = GetEnvVarOrDefault("Frends_AzureTableStorage_ConnString", string.Empty);
+        AccountName = GetEnvVarOrDefault("Frends_AzureTableStorage_AccountName", string.Empty);
+        TenantId = GetEnvVarOrDefault("Frends_AzureTableStorage_TenantID", string.Empty);
+        ClientId = GetEnvVarOrDefault("Frends_AzureTableStorage_ClientID", string.Empty);
+        ClientSecret = GetEnvVarOrDefault("Frends_AzureTableStorage_ClientSecret", string.Empty);
+        SasToken = GetEnvVarOrDefault("Frends_AzureTableStorage_SasToken", string.Empty);
+    }
+
+    protected string ConnectionString { get; set; }
+
+    protected string AccountName { get; set; }
+
+    protected string TenantId { get; set; }
+
+    protected string ClientId { get; set; }
+
+    protected string ClientSecret { get; set; }
+
+    protected string SasToken { get; set; }
+
+    protected static Input DefaultInput() => new()
+    {
+        TableName = string.Empty,
+        Entities = "[]",
+    };
+
+    protected static Connection DefaultConnection() => new()
+    {
+        ConnectionMethod = ConnectionMethod.ConnectionString,
+        ConnectionString = "Invalid",
+    };
+
+    protected static Options DefaultOptions() => new()
+    {
+        BatchSize = 100,
+        ContinueOnFailure = false,
+        ThrowErrorOnFailure = true,
+        ErrorMessageOnFailure = string.Empty,
+    };
+
+    protected static string ToEntitiesJson(params object[] entities) => JsonConvert.SerializeObject(entities);
+
+    protected Connection DefaultConnectionStringConnection() => new()
+    {
+        ConnectionMethod = ConnectionMethod.ConnectionString,
+        ConnectionString = ConnectionString,
+    };
+
+    protected Connection DefaultSasTokenConnection() => new()
+    {
+        ConnectionMethod = ConnectionMethod.SasToken,
+        StorageAccountName = AccountName,
+        SasToken = SasToken,
+    };
+
+    private static string GetEnvVarOrDefault(string name, string defaultValue) =>
+    Environment.GetEnvironmentVariable(name) ?? defaultValue;
+}
