@@ -20,6 +20,8 @@ internal static class EntityParser
         {
             var item = items[i];
 
+            if (item is null) throw new ArgumentException($"Entity at index {i} must be a JSON object, not null.");
+
             if (!item.TryGetValue("PartitionKey", out var pk) || pk is not string { Length: > 0 } ||
                 !item.TryGetValue("RowKey", out var rk) || rk is not string { Length: > 0 })
                 throw new ArgumentException($"Entity at index {i} must have non-empty string PartitionKey and RowKey.");
