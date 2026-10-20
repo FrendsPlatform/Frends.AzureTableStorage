@@ -35,7 +35,6 @@ public static class AzureTableStorage
         try
         {
             ValidationHandler.Run(input, connection);
-            ValidateQuery(input);
             cancellationToken.ThrowIfCancellationRequested();
 
             var tableClient = ConnectionHandler.GetTableServiceClient(connection, cancellationToken)
@@ -92,17 +91,5 @@ public static class AzureTableStorage
             ContinuationToken = null,
             Error = null,
         };
-    }
-
-    private static void ValidateQuery(Input input)
-    {
-        if (input.Filter is { Length: > 0 } && string.IsNullOrWhiteSpace(input.Filter))
-            throw new ValidationException("Filter must contain an OData expression or be empty.");
-
-        if (input.Select?.Any(string.IsNullOrWhiteSpace) == true)
-            throw new ValidationException("Select must contain non-empty property names.");
-
-        if (input.ContinuationToken is { Length: > 0 } && string.IsNullOrWhiteSpace(input.ContinuationToken))
-            throw new ValidationException("ContinuationToken must be a token or be empty.");
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using Frends.AzureTableStorage.QueryEntities.Attributes;
 
 namespace Frends.AzureTableStorage.QueryEntities.Definitions;
 
@@ -23,6 +24,7 @@ public class Input
     /// </summary>
     /// <example>PartitionKey eq 'pk1' and RowKey ge '10'</example>
     [DisplayFormat(DataFormatString = "Text")]
+    [NotWhiteSpace(ErrorMessage = "Filter must contain an OData expression or be empty.")]
     [DefaultValue("")]
     public string Filter { get; set; } = string.Empty;
 
@@ -32,6 +34,7 @@ public class Input
     /// Use the same selection on each page when passing a continuation token.
     /// </summary>
     /// <example>["Name", "Price"]</example>
+    [NotWhiteSpace(ErrorMessage = "Select must contain non-empty property names.")]
     [DefaultValue(null)]
     public string[] Select { get; set; } = [];
 
@@ -49,6 +52,7 @@ public class Input
     /// </summary>
     /// <example>next-page-token</example>
     [DisplayFormat(DataFormatString = "Text")]
+    [NotWhiteSpace(ErrorMessage = "ContinuationToken must be a token or be empty.")]
     [DefaultValue("")]
     public string ContinuationToken { get; set; } = string.Empty;
 }
