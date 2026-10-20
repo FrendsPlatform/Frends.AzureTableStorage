@@ -11,6 +11,7 @@ Frends tasks for Azure Table Storage related operations.
 - [Frends.AzureTableStorage.UpdateEntities](Frends.AzureTableStorage.UpdateEntities/README.md)
 - [Frends.AzureTableStorage.GetEntity](Frends.AzureTableStorage.GetEntity/README.md)
 - [Frends.AzureTableStorage.QueryEntities](Frends.AzureTableStorage.QueryEntities/README.md)
+- [Frends.AzureTableStorage.DeleteEntities](Frends.AzureTableStorage.DeleteEntities/README.md)
 
 # Contributing
 
