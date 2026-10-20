@@ -1,4 +1,6 @@
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using dotenv.net;
 using Frends.AzureTableStorage.QueryEntities.Definitions;
 
@@ -64,6 +66,17 @@ internal abstract class TestBase
         ApplicationId = ClientId,
         ClientSecret = ClientSecret,
     };
+
+    protected Task<Result> RunAsync(
+        Input input,
+        Connection connection = null,
+        Options options = null,
+        CancellationToken cancellationToken = default) =>
+        AzureTableStorage.QueryEntities(
+            input,
+            connection ?? DefaultConnectionStringConnection(),
+            options ?? DefaultOptions(),
+            cancellationToken);
 
     private static string GetEnvVarOrDefault(string name, string defaultValue) =>
         Environment.GetEnvironmentVariable(name) ?? defaultValue;
