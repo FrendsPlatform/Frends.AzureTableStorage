@@ -16,7 +16,7 @@ The task takes `Input`, `Connection` and `Options` parameters:
 
 - `Input.TableName` (required): name of an existing table.
 - `Input.Filter`: an OData filter such as `PartitionKey eq 'pk1' and RowKey ge '10'`. Empty means no filter.
-- `Input.Select`: an array of property names, such as `["Name", "Price"]`. Empty means all properties.
+- `Input.Select`: an array of property names, such as `["Name", "Price"]`. `PartitionKey` and `RowKey` are always returned; empty means all properties.
 - `Input.Top`: maximum entities **per page**, from 1 to 1000 (default 1000). Azure Table Storage can return fewer, or even zero, entities while providing a continuation token.
 - `Input.ContinuationToken`: leave empty for the first page; pass the previous result's token to fetch the next page.
 - `Connection.ConnectionMethod`: `ConnectionString` (default), `OAuth2`, `SasToken`, `ArcManagedIdentity` or `ArcManagedIdentityCrossTenant`, with the corresponding credentials. The same connection parameters and required-field checks as the other Azure Table Storage tasks apply.

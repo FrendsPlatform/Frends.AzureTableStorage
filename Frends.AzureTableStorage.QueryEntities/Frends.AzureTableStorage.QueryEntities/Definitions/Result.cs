@@ -21,7 +21,7 @@ public class Result
     public List<JObject> Entities { get; set; }
 
     /// <summary>
-    /// Number of entities in this page.
+    /// Number of entities on this page.
     /// </summary>
     /// <example>2</example>
     public int Count { get; set; }

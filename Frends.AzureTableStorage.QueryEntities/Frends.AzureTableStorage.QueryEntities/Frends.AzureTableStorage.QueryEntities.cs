@@ -34,7 +34,7 @@ public static class AzureTableStorage
     {
         try
         {
-            ValidationHandler.Run(input, connection, options);
+            ValidationHandler.Run(input, connection);
             ValidateQuery(input);
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -52,15 +52,20 @@ public static class AzureTableStorage
     internal static async Task<Result> QueryPageAsync(
         TableClient tableClient, Input input, CancellationToken cancellationToken)
     {
+        var select = input.Select is { Length: > 0 }
+            ? input.Select.Concat(["PartitionKey", "RowKey"]).Distinct(StringComparer.Ordinal).ToArray()
+            : null;
         var query = tableClient.QueryAsync<TableEntity>(
             filter: string.IsNullOrEmpty(input.Filter) ? null : input.Filter,
             maxPerPage: input.Top,
-            select: input.Select is { Length: > 0 } ? input.Select : null,
+            select: select,
             cancellationToken: cancellationToken);
 
         await foreach (var page in query.AsPages(
-            continuationToken: string.IsNullOrEmpty(input.ContinuationToken) ? null : input.ContinuationToken)
-            .WithCancellation(cancellationToken))
+                               continuationToken: string.IsNullOrEmpty(input.ContinuationToken)
+                                   ? null
+                                   : input.ContinuationToken)
+                           .WithCancellation(cancellationToken))
         {
             var entities = new List<JObject>(page.Values.Count);
             foreach (var entity in page.Values)

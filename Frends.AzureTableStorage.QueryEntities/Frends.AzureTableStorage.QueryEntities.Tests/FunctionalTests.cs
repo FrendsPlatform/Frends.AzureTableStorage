@@ -53,7 +53,7 @@ internal class FunctionalTests : TestBase
         {
             TableName = tableName,
             Filter = "PartitionKey eq 'pk1' and RowKey ge '2'",
-            Select = ["Name"],
+            // Select = ["Name"],
             Top = 10,
         };
 

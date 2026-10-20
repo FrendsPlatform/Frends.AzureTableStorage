@@ -4,9 +4,6 @@ using System.Linq;
 
 namespace Frends.AzureTableStorage.QueryEntities.Helpers;
 
-/// <summary>
-/// Validates objects by their ValidationAttributes.
-/// </summary>
 internal static class ValidationHandler
 {
     internal static void Run(params object[] objects)

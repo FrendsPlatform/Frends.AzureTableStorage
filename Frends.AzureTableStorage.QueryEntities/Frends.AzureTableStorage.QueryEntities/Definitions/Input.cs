@@ -27,7 +27,8 @@ public class Input
     public string Filter { get; set; } = string.Empty;
 
     /// <summary>
-    /// Optional entity property names to return. Leave empty to return all properties.
+    /// Optional entity property names to return. PartitionKey and RowKey are always returned.
+    /// Leave empty to return all properties.
     /// Use the same selection on each page when passing a continuation token.
     /// </summary>
     /// <example>["Name", "Price"]</example>

@@ -51,7 +51,7 @@ internal class SdkQueryTests
         {
             var query = WebUtility.UrlDecode(uri.Query);
             Assert.That(query, Does.Contain("$filter=PartitionKey eq 'pk1'"));
-            Assert.That(query, Does.Contain("$select=Name,Price"));
+            Assert.That(query, Does.Contain("$select=Name,Price,PartitionKey,RowKey"));
             Assert.That(query, Does.Contain("$top=1"));
         }
 
