@@ -9,18 +9,62 @@ internal abstract class TestBase
     internal TestBase()
     {
         DotEnv.Load();
-        SecretKey = GetEnvVar("FRENDS_SECRET_KEY");
+        ConnectionString = GetEnvVarOrDefault("Frends_AzureTableStorage_ConnString", string.Empty);
+        AccountName = GetEnvVarOrDefault("Frends_AzureTableStorage_AccountName", string.Empty);
+        TenantId = GetEnvVarOrDefault("Frends_AzureTableStorage_TenantID", string.Empty);
+        ClientId = GetEnvVarOrDefault("Frends_AzureTableStorage_ClientID", string.Empty);
+        ClientSecret = GetEnvVarOrDefault("Frends_AzureTableStorage_ClientSecret", string.Empty);
+        SasToken = GetEnvVarOrDefault("Frends_AzureTableStorage_SasToken", string.Empty);
     }
 
-    protected string SecretKey { get; set; }
+    protected string ConnectionString { get; set; }
+
+    protected string AccountName { get; set; }
+
+    protected string TenantId { get; set; }
+
+    protected string ClientId { get; set; }
+
+    protected string ClientSecret { get; set; }
+
+    protected string SasToken { get; set; }
 
     protected static Input DefaultInput() => new();
 
-    protected static Connection DefaultConnection() => new();
+    protected static Connection DefaultConnection() => new()
+    {
+        ConnectionMethod = ConnectionMethod.ConnectionString,
+        ConnectionString = "Invalid",
+    };
 
-    protected static Options DefaultOptions() => new();
+    protected static Options DefaultOptions() => new()
+    {
+        ThrowErrorOnFailure = true,
+        ErrorMessageOnFailure = string.Empty,
+    };
 
-    private static string GetEnvVar(string name) => Environment.GetEnvironmentVariable(name) ??
-                                                    throw new InvalidOperationException(
-                                                        $"Missing required env var: {name}");
+    protected Connection DefaultConnectionStringConnection() => new()
+    {
+        ConnectionMethod = ConnectionMethod.ConnectionString,
+        ConnectionString = ConnectionString,
+    };
+
+    protected Connection DefaultSasTokenConnection() => new()
+    {
+        ConnectionMethod = ConnectionMethod.SasToken,
+        StorageAccountName = AccountName,
+        SasToken = SasToken,
+    };
+
+    protected Connection DefaultOAuth2Connection() => new()
+    {
+        ConnectionMethod = ConnectionMethod.OAuth2,
+        StorageAccountName = AccountName,
+        TenantId = TenantId,
+        ApplicationId = ClientId,
+        ClientSecret = ClientSecret,
+    };
+
+    private static string GetEnvVarOrDefault(string name, string defaultValue) =>
+        Environment.GetEnvironmentVariable(name) ?? defaultValue;
 }

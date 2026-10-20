@@ -1,4 +1,7 @@
-﻿namespace Frends.AzureTableStorage.QueryEntities.Definitions;
+﻿using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
+
+namespace Frends.AzureTableStorage.QueryEntities.Definitions;
 
 /// <summary>
 /// Result of the task.
@@ -12,10 +15,23 @@ public class Result
     public bool Success { get; set; }
 
     /// <summary>
-    /// Input string repeated the specified number of times.
+    /// Entities in this page as JSON objects, including their keys and odata.etag.
     /// </summary>
-    /// <example>foobar,foobar</example>
-    public string Output { get; set; }
+    /// <example>[ { "PartitionKey": "pk1", "RowKey": "1", "Name": "Anna", "odata.etag": "W/\"datetime'2024-05-01T10%3A15%3A30.1234567Z'\"" } ]</example>
+    public List<JObject> Entities { get; set; }
+
+    /// <summary>
+    /// Number of entities in this page.
+    /// </summary>
+    /// <example>2</example>
+    public int Count { get; set; }
+
+    /// <summary>
+    /// Token for the next page, or null or empty if there are no more pages.
+    /// A page may be empty even when this token is present.
+    /// </summary>
+    /// <example>next-page-token</example>
+    public string ContinuationToken { get; set; }
 
     /// <summary>
     /// Error that occurred during task execution.
