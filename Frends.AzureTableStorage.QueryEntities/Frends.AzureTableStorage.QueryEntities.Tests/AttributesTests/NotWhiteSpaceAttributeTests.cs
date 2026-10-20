@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using Frends.AzureTableStorage.QueryEntities.Attributes;
@@ -24,7 +25,10 @@ internal class NotWhiteSpaceAttributeTests
         foreach (var value in invalidValues)
         {
             var result = Validate(value);
-            Assert.That(result?.ErrorMessage, Is.EqualTo("Items must not contain white-space-only values."), $"Value: {value}");
+            Assert.That(
+                result?.ErrorMessage,
+                Is.EqualTo("Items must not contain white-space-only values."),
+                $"Value: {value}");
         }
     }
 
@@ -37,7 +41,7 @@ internal class NotWhiteSpaceAttributeTests
             string.Empty,
             "value",
             " value ",
-            new string[0],
+            Array.Empty<string>(),
             new[] { "a", "b" },
             new List<string> { "a" },
             0,

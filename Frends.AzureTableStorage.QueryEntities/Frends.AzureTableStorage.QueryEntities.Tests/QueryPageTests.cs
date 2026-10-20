@@ -41,7 +41,7 @@ internal class QueryPageTests
 
         Assert.That(client.Filter, Is.EqualTo(input.Filter));
         Assert.That(client.MaxPerPage, Is.EqualTo(input.Top));
-        Assert.That(client.Select, Is.EqualTo(new[] { "Name", "Price", "PartitionKey", "RowKey" }));
+        Assert.That(client.Select, Is.EqualTo(["Name", "Price", "PartitionKey", "RowKey"]));
         Assert.That(client.CancellationToken, Is.EqualTo(source.Token));
         Assert.That(pages.RequestedToken, Is.EqualTo(input.ContinuationToken));
         Assert.That(pages.PagesRead, Is.EqualTo(1));

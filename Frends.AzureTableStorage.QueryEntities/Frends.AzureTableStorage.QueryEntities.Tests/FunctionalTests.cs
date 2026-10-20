@@ -19,8 +19,6 @@ internal class FunctionalTests : TestBase
     [SetUp]
     public async Task SetUp()
     {
-        Assume.That(ConnectionString, Is.Not.Empty, "Connection string is required for functional tests.");
-
         tableName = $"queryentities{Guid.NewGuid():N}"[..30];
         var serviceClient = new TableServiceClient(ConnectionString);
         tableClient = serviceClient.GetTableClient(tableName);
@@ -53,7 +51,7 @@ internal class FunctionalTests : TestBase
         {
             TableName = tableName,
             Filter = "PartitionKey eq 'pk1' and RowKey ge '2'",
-            // Select = ["Name"],
+            Select = ["Name"],
             Top = 10,
         };
 
@@ -101,14 +99,18 @@ internal class FunctionalTests : TestBase
             Assert.That(result.ContinuationToken, pageNumber < 2 ? Is.Not.Empty : Is.Null);
         }
 
-        Assert.That(rowKeys, Is.EqualTo(new[] { "1", "2", "3", "4", "5" }));
+        Assert.That(rowKeys, Is.EqualTo(["1", "2", "3", "4", "5"]));
     }
 
     [Test]
     public async Task ShouldReturnEmptyPageWhenNothingMatches()
     {
         var result = await AzureTableStorage.QueryEntities(
-            new Input { TableName = tableName, Filter = "PartitionKey eq 'notfound'" },
+            new Input
+            {
+                TableName = tableName,
+                Filter = "PartitionKey eq 'notfound'",
+            },
             DefaultConnectionStringConnection(),
             DefaultOptions(),
             CancellationToken.None);
@@ -127,7 +129,7 @@ internal class FunctionalTests : TestBase
         options.ThrowErrorOnFailure = false;
 
         var result = await AzureTableStorage.QueryEntities(
-            new Input { TableName = $"missingtable{Guid.NewGuid():N}"[..30] },
+            new Input { TableName = $"missing-table{Guid.NewGuid():N}"[..30] },
             DefaultConnectionStringConnection(),
             options,
             CancellationToken.None);
@@ -146,7 +148,11 @@ internal class FunctionalTests : TestBase
         options.ThrowErrorOnFailure = false;
 
         var result = await AzureTableStorage.QueryEntities(
-            new Input { TableName = tableName, Filter = "PartitionKey eq 'unterminated" },
+            new Input
+            {
+                TableName = tableName,
+                Filter = "PartitionKey eq 'unterminated",
+            },
             DefaultConnectionStringConnection(),
             options,
             CancellationToken.None);
@@ -158,12 +164,14 @@ internal class FunctionalTests : TestBase
     [Test]
     public async Task ShouldQueryWithSasToken()
     {
-        Assume.That(AccountName, Is.Not.Empty, "Storage account name is required for the SAS test.");
-        Assume.That(SasToken, Is.Not.Empty, "SAS token is required for the SAS test.");
         await SeedEntityAsync("pk1", "1", "Anna", 10);
 
         var result = await AzureTableStorage.QueryEntities(
-            new Input { TableName = tableName, Filter = "PartitionKey eq 'pk1'" },
+            new Input
+            {
+                TableName = tableName,
+                Filter = "PartitionKey eq 'pk1'",
+            },
             DefaultSasTokenConnection(),
             DefaultOptions(),
             CancellationToken.None);
@@ -175,14 +183,14 @@ internal class FunctionalTests : TestBase
     [Test]
     public async Task ShouldQueryWithOAuth2()
     {
-        Assume.That(AccountName, Is.Not.Empty, "Storage account name is required for the OAuth2 test.");
-        Assume.That(TenantId, Is.Not.Empty, "Tenant ID is required for the OAuth2 test.");
-        Assume.That(ClientId, Is.Not.Empty, "Client ID is required for the OAuth2 test.");
-        Assume.That(ClientSecret, Is.Not.Empty, "Client secret is required for the OAuth2 test.");
         await SeedEntityAsync("pk1", "1", "Anna", 10);
 
         var result = await AzureTableStorage.QueryEntities(
-            new Input { TableName = tableName, Filter = "PartitionKey eq 'pk1'" },
+            new Input
+            {
+                TableName = tableName,
+                Filter = "PartitionKey eq 'pk1'",
+            },
             DefaultOAuth2Connection(),
             DefaultOptions(),
             CancellationToken.None);

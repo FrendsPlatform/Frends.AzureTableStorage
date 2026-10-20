@@ -26,7 +26,7 @@ public enum ConnectionMethod
     ArcManagedIdentity = 4,
 
     /// <summary>
-    /// Azure Arc Managed Identity Cross Tenant.
+    /// Azure Arc Managed Identity Cross-Tenant.
     /// </summary>
     ArcManagedIdentityCrossTenant = 5,
 }

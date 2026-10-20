@@ -65,7 +65,11 @@ internal class SdkQueryTests
     {
         using var handler = new ScriptedTableHandler(emptyFirstPage: true);
         var client = CreateClient(handler);
-        var input = new Input { TableName = "orders", Top = 1 };
+        var input = new Input
+        {
+            TableName = "orders",
+            Top = 1,
+        };
 
         var first = await AzureTableStorage.QueryPageAsync(client, input, CancellationToken.None);
 
@@ -87,12 +91,15 @@ internal class SdkQueryTests
 
     private static TableClient CreateClient(HttpMessageHandler handler)
     {
-        var options = new TableClientOptions { Transport = new HttpClientTransport(handler) };
-        options.Retry.MaxRetries = 0;
+        var options = new TableClientOptions
+        {
+            Transport = new HttpClientTransport(handler),
+            Retry = { MaxRetries = 0 },
+        };
         return new TableClient(
-            "DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;" +
+            "DefaultEndpointsProtocol=http;AccountName=dev-store-account1;" +
             "AccountKey=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=;" +
-            "TableEndpoint=http://127.0.0.1:10002/devstoreaccount1",
+            "TableEndpoint=http://127.0.0.1:10002/dev-store-account1",
             "orders",
             options);
     }
@@ -111,11 +118,19 @@ internal class SdkQueryTests
             var isFirstPage = RequestUris.Count == 1;
             string content;
             if (isFirstPage && emptyFirstPage)
+            {
                 content = """{"value":[]}""";
+            }
             else if (isFirstPage)
-                content = """{"value":[{"PartitionKey":"pk1","RowKey":"1","Name":"Anna","Price":10,"Timestamp":"2024-05-01T10:15:30Z","odata.etag":"W/\"etag1\""}]}""";
+            {
+                content =
+                    """{"value":[{"PartitionKey":"pk1","RowKey":"1","Name":"Anna","Price":10,"Timestamp":"2024-05-01T10:15:30Z","odata.etag":"W/\"etag1\""}]}""";
+            }
             else
-                content = """{"value":[{"PartitionKey":"pk1","RowKey":"2","Name":"Bob","Price":20,"Timestamp":"2024-05-01T10:15:30Z","odata.etag":"W/\"etag2\""}]}""";
+            {
+                content =
+                    """{"value":[{"PartitionKey":"pk1","RowKey":"2","Name":"Bob","Price":20,"Timestamp":"2024-05-01T10:15:30Z","odata.etag":"W/\"etag2\""}]}""";
+            }
 
             var response = new HttpResponseMessage(HttpStatusCode.OK)
             {

@@ -15,7 +15,7 @@ public class Result
     public bool Success { get; set; }
 
     /// <summary>
-    /// Entities in this page as JSON objects, including their keys and odata.etag.
+    /// Entities on this page as JSON objects, including their keys and odata.etag.
     /// </summary>
     /// <example>[ { "PartitionKey": "pk1", "RowKey": "1", "Name": "Anna", "odata.etag": "W/\"datetime'2024-05-01T10%3A15%3A30.1234567Z'\"" } ]</example>
     public List<JObject> Entities { get; set; }
