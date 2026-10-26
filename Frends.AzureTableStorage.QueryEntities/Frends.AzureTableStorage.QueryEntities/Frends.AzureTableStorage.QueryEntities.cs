@@ -24,7 +24,7 @@ public static class AzureTableStorage
     /// <param name="connection">Connection parameters.</param>
     /// <param name="options">Additional parameters.</param>
     /// <param name="cancellationToken">A cancellation token provided by Frends Platform.</param>
-    /// <returns>object { bool Success, List&lt;JObject&gt; Entities, int Count, string ContinuationToken, object Error { string Message, Exception AdditionalInfo } }</returns>
+    /// <returns>object { bool Success, dynamic Entities, int Count, string ContinuationToken, object Error { string Message, Exception AdditionalInfo } }</returns>
     public static async Task<Result> QueryEntities(
         [PropertyTab] Input input,
         [PropertyTab] Connection connection,
@@ -75,7 +75,7 @@ public static class AzureTableStorage
             return new Result
             {
                 Success = true,
-                Entities = entities,
+                Entities = new JArray(entities.Select(entity => (JToken)entity)),
                 Count = entities.Count,
                 ContinuationToken = page.ContinuationToken,
                 Error = null,
@@ -85,7 +85,7 @@ public static class AzureTableStorage
         return new Result
         {
             Success = true,
-            Entities = [],
+            Entities = new JArray(),
             Count = 0,
             ContinuationToken = null,
             Error = null,

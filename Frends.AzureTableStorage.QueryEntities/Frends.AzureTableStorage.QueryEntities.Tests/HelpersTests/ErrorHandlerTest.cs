@@ -155,7 +155,7 @@ internal class ErrorHandlerTest : TestBase
     }
 
     [Test]
-    public void ShouldPropagateCancellationEvenWhenFailureIsReturned()
+    public async Task ShouldPropagateCancellationEvenWhenFailureIsReturned()
     {
         using var source = new CancellationTokenSource();
         source.Cancel();
@@ -163,7 +163,7 @@ internal class ErrorHandlerTest : TestBase
         options.ThrowErrorOnFailure = false;
         options.ErrorMessageOnFailure = CustomErrorMessage;
 
-        Assert.ThrowsAsync<OperationCanceledException>(() =>
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
             AzureTableStorage.QueryEntities(
                 new Input { TableName = "orders" },
                 new Connection { ConnectionString = "UseDevelopmentStorage=true" },

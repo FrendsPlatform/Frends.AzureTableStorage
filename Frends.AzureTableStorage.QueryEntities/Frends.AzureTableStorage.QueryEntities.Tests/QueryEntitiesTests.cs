@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Azure;
 using Azure.Data.Tables;
 using Frends.AzureTableStorage.QueryEntities.Definitions;
+using Newtonsoft.Json.Linq;
 using NUnit.Framework;
 
 namespace Frends.AzureTableStorage.QueryEntities.Tests;
@@ -64,10 +65,12 @@ internal class QueryEntitiesTests : TestBase
         var result = await RunAsync(input);
 
         Assert.That(result.Success, Is.True);
+        Assert.That(result.Entities, Is.TypeOf<JArray>());
         Assert.That(result.Count, Is.EqualTo(2));
         Assert.That((string)result.Entities[0]["PartitionKey"], Is.EqualTo("pk1"));
         Assert.That((string)result.Entities[0]["RowKey"], Is.EqualTo("2"));
         Assert.That((string)result.Entities[0]["Name"], Is.EqualTo("Bob"));
+        Assert.That((string)result.Entities[0]["odata.etag"], Is.Not.Empty);
         Assert.That(result.Entities[0]["Price"], Is.Null);
         Assert.That(result.Entities[0]["Hidden"], Is.Null);
         Assert.That(result.ContinuationToken, Is.Null);
@@ -93,7 +96,9 @@ internal class QueryEntitiesTests : TestBase
         Assert.That((string)result.Entities[0]["RowKey"], Is.EqualTo("1"));
         Assert.That((string)result.Entities[0]["Name"], Is.EqualTo("Anna"));
         Assert.That((int)result.Entities[0]["Price"], Is.EqualTo(10));
-        Assert.That((string)result.Entities[0]["Bytes"], Is.EqualTo(Convert.ToBase64String([1, 2, 3])));
+        Assert.That(
+            (string)((JArray)result.Entities)[0]["Bytes"],
+            Is.EqualTo(Convert.ToBase64String([1, 2, 3])));
         Assert.That((string)result.Entities[1]["RowKey"], Is.EqualTo("2"));
         Assert.That(result.ContinuationToken, Is.Not.Empty);
         Assert.That(result.Error, Is.Null);
@@ -120,7 +125,7 @@ internal class QueryEntitiesTests : TestBase
             Assert.That(result.Entities, Has.Count.EqualTo(result.Count));
             Assert.That(result.Error, Is.Null);
 
-            rowKeys.AddRange(result.Entities.Select(entity => (string)entity["RowKey"]));
+            rowKeys.AddRange(((JArray)result.Entities).Select(entity => (string)entity["RowKey"]));
             input.ContinuationToken = result.ContinuationToken;
 
             Assert.That(result.ContinuationToken, pageNumber == 0 ? Is.Not.Empty : Is.Null);
@@ -137,7 +142,7 @@ internal class QueryEntitiesTests : TestBase
         Assert.That(result.Success, Is.True);
         Assert.That(result.Count, Is.EqualTo(4));
         Assert.That(
-            result.Entities.Select(e => (string)e["RowKey"]).OrderBy(x => x),
+            ((JArray)result.Entities).Select(e => (string)e["RowKey"]).OrderBy(x => x),
             Is.EqualTo(new List<string> { "1", "2", "3", "4" }));
         Assert.That(result.ContinuationToken, Is.Null);
     }
@@ -166,13 +171,14 @@ internal class QueryEntitiesTests : TestBase
         options.ThrowErrorOnFailure = false;
 
         var result = await RunAsync(
-            new Input { TableName = $"missing-table{Guid.NewGuid():N}"[..30] }, options: options);
+            new Input { TableName = $"missingtable{Guid.NewGuid():N}"[..30] }, options: options);
 
         Assert.That(result.Success, Is.False);
         Assert.That(result.Entities, Is.Null);
         Assert.That(result.Count, Is.Zero);
         Assert.That(result.ContinuationToken, Is.Null);
         Assert.That(result.Error.AdditionalInfo, Is.TypeOf<RequestFailedException>());
+        Assert.That(((RequestFailedException)result.Error.AdditionalInfo).Status, Is.EqualTo(404));
     }
 
     [Test]
@@ -194,12 +200,12 @@ internal class QueryEntitiesTests : TestBase
     }
 
     [Test]
-    public void ShouldHonorCancellation()
+    public async Task ShouldHonorCancellation()
     {
         using var source = new CancellationTokenSource();
         source.Cancel();
 
-        Assert.ThrowsAsync<OperationCanceledException>(() =>
+        await Assert.ThrowsAsync<OperationCanceledException>(() =>
             RunAsync(new Input { TableName = tableName }, cancellationToken: source.Token));
     }
 
